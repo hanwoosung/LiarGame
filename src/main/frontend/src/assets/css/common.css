@@ -1,0 +1,115 @@
+.flexC{display: flex;flex-direction: column;}
+.flexR{display: flex;}
+.vh100{height: 100vh;}
+.between{justify-content: space-between;}
+.container{max-width: 600px ; margin: 0 auto; height: 100vh;}
+
+.marginT5{margin-top: 5px}
+.marginT10{margin-top: 10px}
+.marginT15{margin-top: 15px}
+.marginT20{margin-top: 20px}
+.marginT25{margin-top: 25px}
+.marginT30{margin-top: 30px}
+.marginT35{margin-top: 35px}
+.marginT40{margin-top: 40px}
+.marginT45{margin-top: 45px}
+.marginT50{margin-top: 50px}
+
+.marginL5{margin-left: 5px}
+.marginL10{margin-left: 10px}
+.marginL15{margin-left: 15px}
+.marginL20{margin-left: 20px}
+.marginL25{margin-left: 25px}
+.marginL30{margin-left: 30px}
+.marginL35{margin-left: 35px}
+.marginL40{margin-left: 40px}
+.marginL45{margin-left: 45px}
+.marginL50{margin-left: 50px}
+
+.marginR5{margin-right: 5px}
+.marginR10{margin-right: 10px}
+.marginR15{margin-right: 15px}
+.marginR20{margin-right: 20px}
+.marginR25{margin-right: 25px}
+.marginR30{margin-right: 30px}
+.marginR35{margin-right: 35px}
+.marginR40{margin-right: 40px}
+.marginR45{margin-right: 45px}
+.marginR50{margin-right: 50px}
+
+.marginB5{margin-bottom: 5px}
+.marginB10{margin-bottom: 10px}
+.marginB15{margin-bottom: 15px}
+.marginB20{margin-bottom: 20px}
+.marginB25{margin-bottom: 25px}
+.marginB30{margin-bottom: 30px}
+.marginB35{margin-bottom: 35px}
+.marginB40{margin-bottom: 40px}
+.marginB45{margin-bottom: 45px}
+.marginB50{margin-bottom: 50px}
+.marginB150{margin-bottom: 150px}
+
+.textC{text-align: center;}
+.textL{text-align: start;}
+.textR{text-align: end;}
+
+.textB{font-weight: bold}
+.textN{font-weight: normal}
+.textL{font-weight: 400}
+
+.font10{font-size: 0.625rem}
+.font16{font-size: 1rem}
+.font20{font-size: 1.25rem}
+.font24{font-size: 1.5rem}
+.font32{font-size: 2rem}
+.font64{font-size: 4rem}
+.font80{font-size: 5rem}
+
+.White{color: white;}
+
+
+.itemC{justify-content: center;}
+.fontLaundry{font-family: LaundryGothic, serif}
+.alignC{align-items: center;}
+
+.background {
+    height: 100vh;
+    background-color: #5d5d5d;
+    background-image: url("../images/back.png");
+    background-size: 600px 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+.stylishText {
+    font-family: 'Noto Sans', sans-serif; /* 원하는 폰트 사용 */
+    font-size: 64px;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(28, 28, 28, 0.72), #f2f923); /* 그라데이션 효과 */
+    -webkit-background-clip: text; /* 그라데이션을 텍스트에 적용 */
+    -webkit-text-fill-color: transparent; /* 텍스트 색상 투명으로 */
+    text-shadow: 2px 4px 6px rgba(0, 0  , 0, 0.6), /* 입체감 주는 그림자 */
+    -2px -4px 6px rgba(255, 255, 255, 0.3); /* 약간의 하이라이트 */
+
+    position: relative;
+}
+
+.stylishText::before {
+    content: '라이어 게임';
+    position: absolute;
+    top: 30px;
+    right: 90px;
+    z-index: -1;
+    color: rgba(0, 0, 0, 0.3); /* 입체감 추가 */
+}
+
+@font-face {
+    font-family: 'LaundryGothic';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}
+
+
+
