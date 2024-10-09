@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import SockJS from 'sockjs-client';
 import {Client as StompClient} from '@stomp/stompjs';
+import {useBeforeunload} from 'react-beforeunload';
 
 var stompClient = null;
 
@@ -12,10 +13,19 @@ const ReadyToGame = () => {
         message: '' // 사용자가 입력한 메시지
     });
     const [userList, setUserList] = useState([]); // 유저 닉네임리스트 저장
+    const [isDialogOpen, setDialogOpen] = useState(false);
+
 
     useEffect(() => {
-        console.log("payloaddata" + JSON.stringify(userData))
+        console.log("payloaddata" + JSON.stringify(userData));
+        window.history.pushState(null, null, window.location.href);
     }, [userData]);
+
+    useBeforeunload((event) => {
+        if (userData.connected) {
+            onDisconnect();
+        }
+    });
 
     const connect = () => {
         let Sock = new SockJS('http://localhost:8080/ws'); // WebSocket 서버 주소
@@ -39,6 +49,21 @@ const ReadyToGame = () => {
         userJoin(); // 사용자가 채팅방에 들어왔음을 알리는 메시지 전송
     }
 
+    const onDisconnect = () => {
+        if (userData.username) {
+            const chatMessage = {
+                senderName: userData.username,
+                status: "LEAVE"
+            };
+            stompClient.publish({
+                destination: "/app/message",
+                body: JSON.stringify(chatMessage),
+            });
+            setUserData({...userData, connected: false});
+            stompClient.deactivate();
+        }
+    };
+
     const userJoin = () => {
         var chatMessage = {
             senderName: userData.username,
@@ -57,19 +82,17 @@ const ReadyToGame = () => {
                 break;
             case "MESSAGE": // 메시지 받았을 때
                 publicChats.push(payloadData);
-                console.log("payloaddata" + JSON.stringify(payloadData))
+                console.log("payloaddata" + JSON.stringify(payloadData));
                 setPublicChats([...publicChats]); // 메시지 리스트 업데이트
                 break;
         }
     }
 
-
     const onUserListReceived = (payload) => {
         const users = JSON.parse(payload.body);
-        setUserList(users)
-        console.log("userList 등장 " + JSON.stringify(users))
+        setUserList(users);
+        console.log("userList 등장 " + JSON.stringify(users));
     }
-
 
     const onError = (err) => {
         console.log(err); // 에러 발생 시 로그 출력
@@ -104,16 +127,35 @@ const ReadyToGame = () => {
         connect();
     }
 
+    const confirmLeaveGame = () => {
+        setDialogOpen(false);
+        window.location.href = "http://localhost:3001";
+    };
+    const handleLeaveGame = () => {
+        setDialogOpen(true);
+    };
+
+
+    const cancelLeaveGame = () => {
+        setDialogOpen(false);
+    };
+
     return (
         <div className="container">
-            {userData.connected ?
+            {isDialogOpen && (
+                <div className="confirmation-dialog">
+                    <p>Are you sure you want to leave the game?</p>
+                    <button onClick={confirmLeaveGame}>Yes</button>
+                    <button onClick={cancelLeaveGame}>No</button>
+                </div>
+            )}
+            {userData.connected ? (
                 <div>
-
                     <ul>
                         <h1>유저 닉네임 출력 테스트</h1>
                         {
                             userList.map((user, index) => (
-                                <li key={index}> {index + 1}  유저 이름 : {user} </li>
+                                <li key={index}> {index + 1} 유저 이름 : {user} </li>
                             ))
                         }
                     </ul>
@@ -139,8 +181,11 @@ const ReadyToGame = () => {
                             </div>
                         </div>
                     </div>
+                    <button type="button" onClick={handleLeaveGame}>
+                        Leave Game
+                    </button>
                 </div>
-                :
+            ) : (
                 <div className="register">
                     <input
                         id="user-name"
@@ -152,9 +197,10 @@ const ReadyToGame = () => {
                     <button type="button" onClick={registerUser}>
                         Connect
                     </button>
-                </div>}
+                </div>
+            )}
         </div>
-    )
+    );
 }
 
 export default ReadyToGame;
