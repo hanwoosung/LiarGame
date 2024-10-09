@@ -13,7 +13,7 @@ public class Message {
     private String date;
     private Status status;
 
-    enum Status {
+    public enum Status { //public
         JOIN,
         MESSAGE,
         LEAVE

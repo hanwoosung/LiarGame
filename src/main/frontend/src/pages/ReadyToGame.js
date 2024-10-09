@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import SockJS from 'sockjs-client';
-import { Client as StompClient } from '@stomp/stompjs';
+import {Client as StompClient} from '@stomp/stompjs';
 
 var stompClient = null;
 
@@ -11,9 +11,10 @@ const ReadyToGame = () => {
         connected: false, // 서버에 연결되었는지 여부
         message: '' // 사용자가 입력한 메시지
     });
+    const [userList, setUserList] = useState([]); // 유저 닉네임리스트 저장
 
     useEffect(() => {
-        console.log("payloaddata"+ JSON.stringify(userData))
+        console.log("payloaddata" + JSON.stringify(userData))
     }, [userData]);
 
     const connect = () => {
@@ -32,8 +33,9 @@ const ReadyToGame = () => {
     }
 
     const onConnected = () => {
-        setUserData({ ...userData, connected: true });
+        setUserData({...userData, connected: true});
         stompClient.subscribe('/chatroom/public', onMessageReceived); // 채팅방 구독
+        stompClient.subscribe('/chatroom/user-name', onUserListReceived); // 채팅방 구독
         userJoin(); // 사용자가 채팅방에 들어왔음을 알리는 메시지 전송
     }
 
@@ -55,19 +57,27 @@ const ReadyToGame = () => {
                 break;
             case "MESSAGE": // 메시지 받았을 때
                 publicChats.push(payloadData);
-                console.log("payloaddata"+ JSON.stringify(payloadData))
+                console.log("payloaddata" + JSON.stringify(payloadData))
                 setPublicChats([...publicChats]); // 메시지 리스트 업데이트
                 break;
         }
     }
+
+
+    const onUserListReceived = (payload) => {
+        const users = JSON.parse(payload.body);
+        setUserList(users)
+        console.log("userList 등장 " + JSON.stringify(users))
+    }
+
 
     const onError = (err) => {
         console.log(err); // 에러 발생 시 로그 출력
     }
 
     const handleMessage = (event) => {
-        const { value } = event.target;
-        setUserData({ ...userData, message: value });
+        const {value} = event.target;
+        setUserData({...userData, message: value});
     }
 
     const sendValue = () => {
@@ -81,13 +91,13 @@ const ReadyToGame = () => {
                 destination: "/app/message",
                 body: JSON.stringify(chatMessage),
             }); // 메시지 전송
-            setUserData({ ...userData, message: "" }); // 메시지 입력창 초기화
+            setUserData({...userData, message: ""}); // 메시지 입력창 초기화
         }
     }
 
     const handleUsername = (event) => {
-        const { value } = event.target;
-        setUserData({ ...userData, username: value });
+        const {value} = event.target;
+        setUserData({...userData, username: value});
     }
 
     const registerUser = () => {
@@ -97,21 +107,36 @@ const ReadyToGame = () => {
     return (
         <div className="container">
             {userData.connected ?
-                <div className="chat-box">
-                    <div className="chat-content">
-                        <ul className="chat-messages">
-                            {publicChats.map((chat, index) => (
-                                <li className={`message ${chat.senderName === userData.username && "self"}`} key={index}>
-                                    {chat.senderName !== userData.username && <div className="avatar">{chat.senderName}</div>}
-                                    <div className="message-data">{chat.message}</div>
-                                    {chat.senderName === userData.username && <div className="avatar self">{chat.senderName}</div>}
-                                </li>
-                            ))}
-                        </ul>
+                <div>
 
-                        <div className="send-message">
-                            <input type="text" className="input-message" placeholder="Enter the message" value={userData.message} onChange={handleMessage} />
-                            <button type="button" className="send-button" onClick={sendValue}>Send</button>
+                    <ul>
+                        <h1>유저 닉네임 출력 테스트</h1>
+                        {
+                            userList.map((user, index) => (
+                                <li key={index}> {index + 1}  유저 이름 : {user} </li>
+                            ))
+                        }
+                    </ul>
+                    <div className="chat-box">
+                        <div className="chat-content">
+                            <ul className="chat-messages">
+                                {publicChats.map((chat, index) => (
+                                    <li className={`message ${chat.senderName === userData.username && "self"}`}
+                                        key={index}>
+                                        {chat.senderName !== userData.username &&
+                                            <div className="avatar">{chat.senderName}</div>}
+                                        <div className="message-data">{chat.message}</div>
+                                        {chat.senderName === userData.username &&
+                                            <div className="avatar self">{chat.senderName}</div>}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="send-message">
+                                <input type="text" className="input-message" placeholder="Enter the message"
+                                       value={userData.message} onChange={handleMessage}/>
+                                <button type="button" className="send-button" onClick={sendValue}>Send</button>
+                            </div>
                         </div>
                     </div>
                 </div>

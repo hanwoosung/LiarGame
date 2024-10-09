@@ -23,7 +23,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // 클라이언트는 "/ws" 경로로 WebSocket에 접속할 수 있음
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3002")
+                .setAllowedOrigins("http://localhost:3000")
                 .withSockJS();
     }
 }
