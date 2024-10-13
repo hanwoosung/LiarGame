@@ -2,7 +2,7 @@
 .flexR{display: flex;}
 .vh100{height: 100vh;}
 .between{justify-content: space-between;}
-.container{max-width: 1080px ; margin: 0 auto; height: 100vh;}
+.container-main{width: 1080px ; margin: 0 auto; height: 100vh;}
 
 .marginT5{margin-top: 5px}
 .marginT10{margin-top: 10px}

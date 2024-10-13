@@ -1,16 +1,11 @@
-import {useNavigate} from "react-router-dom";
+import '../assets/css/button.css';
 
-const MainButton = ({name, link = ''}) => {
-    const navigate = useNavigate();
-
-    const goNav = () => {
-        navigate(link);
-    };
-
+const MainButton = ({ name, onClick }) => {
     return (
-        <div>
-            <button className="mainBtn fontLaundry" onClick={goNav}>{name}</button>
-        </div>
-    )
-}
+        <button  className="mainBtn fontLaundry" onClick={onClick}>
+            {name}
+        </button>
+    );
+};
+
 export default MainButton

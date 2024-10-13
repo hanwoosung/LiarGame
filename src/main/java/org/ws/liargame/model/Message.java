@@ -10,12 +10,14 @@ import lombok.*;
 public class Message {
     private String senderName;
     private String message;
+    private String  roomId;
     private String date;
     private Status status;
 
     public enum Status { //public
         JOIN,
         MESSAGE,
-        LEAVE
+        LEAVE,
+        ERROR
     }
 }

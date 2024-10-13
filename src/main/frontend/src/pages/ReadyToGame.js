@@ -1,25 +1,32 @@
-import React, {useEffect, useState} from 'react';
-import SockJS from 'sockjs-client';
-import {Client as StompClient} from '@stomp/stompjs';
-import {useBeforeunload} from 'react-beforeunload';
+import React, { useEffect } from 'react';
+import { useBeforeunload } from 'react-beforeunload';
+import { useLocation } from 'react-router-dom';
+import { useGame } from '../hooks/gameHooks';
+import '../assets/css/game.css';
 
-let stompClient = null;
-
+/**
+ * ReadyToGame 컴포넌트
+ * 게임 시작 전 대기 화면을 관리하며, 유저 목록 및 채팅 기능을 제공
+ */
 const ReadyToGame = () => {
-    const [publicChats, setPublicChats] = useState([]); // 채팅 메시지 저장
-    const [userData, setUserData] = useState({
-        username: '',
-        connected: false,
-        message: ''
-    });
-    const [userList, setUserList] = useState([]); // 유저 리스트 저장
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const username = queryParams.get('username');
+    const roomId = queryParams.get('roomNo');
 
-    useEffect(() => {
-        console.log("유저 데이터: " + JSON.stringify(userData));
-        window.history.pushState(null, null, window.location.href);
-    }, [userData]);
+    const {
+        publicChats,
+        userList,
+        userData,
+        sendValue,
+        setUserData,
+        sendLeaveMessage,
+        onDisconnect,
+    } = useGame(username, roomId);
 
-    // 페이지를 떠날 때 경고창 띄우기
+    /**
+     * 페이지가 닫히거나 새로고침될 때 연결된 유저라면 퇴장 메시지를 전송
+     */
     useBeforeunload((event) => {
         if (userData.connected) {
             event.preventDefault();
@@ -41,116 +48,24 @@ const ReadyToGame = () => {
         };
     }, [userData]);
 
-    // 서버 연결
-    const connect = () => {
-        let Sock = new SockJS('http://localhost:8080/ws');
-        stompClient = new StompClient({
-            webSocketFactory: () => Sock,
-            debug: (str) => console.log(str),
-            reconnectDelay: 5000
-        });
-
-        stompClient.onConnect = onConnected;
-        stompClient.onStompError = onError;
-        stompClient.activate();
-    }
-
-    const onConnected = () => {
-        setUserData({...userData, connected: true});
-        stompClient.subscribe('/chatroom/public', onMessageReceived);
-        stompClient.subscribe('/chatroom/user-name', onUserListReceived);
-        userJoin();
-    }
-
-    // 유저가 떠날 때 서버로 알림 전송
-    const sendLeaveMessage = () => {
-        if (userData.username) {
-            const chatMessage = {
-                senderName: userData.username,
-                status: "LEAVE"
-            };
-            navigator.sendBeacon('/leave', JSON.stringify(chatMessage));
-        }
-    }
-
-    // 연결 해제
-    const onDisconnect = () => {
-        if (userData.username) {
-            sendLeaveMessage();
-            setUserData({...userData, connected: false});
-            stompClient.deactivate();
-        }
+    /**
+     * 입력된 메시지를 상태로 업데이트하는 함수
+     */
+    const handleMessage = (event) => {
+        setUserData({ ...userData, message: event.target.value });
     };
 
-    // 유저 입장 알림 전송
-    const userJoin = () => {
-        const chatMessage = {
-            senderName: userData.username,
-            status: "JOIN"
-        };
-        stompClient.publish({
-            destination: "/app/message",
-            body: JSON.stringify(chatMessage),
-        });
-    }
-
-    // 채팅 메시지 수신 처리
-    const onMessageReceived = (payload) => {
-        const payloadData = JSON.parse(payload.body);
-        if (payloadData.status === "MESSAGE") {
-            setPublicChats((prevChats) => [...prevChats, payloadData]);
-        }
-    }
-
-    // 유저 리스트 수신 처리
-    const onUserListReceived = (payload) => {
-        setUserList(JSON.parse(payload.body));
-    }
-
-    const onError = (err) => {
-        console.error("Error:", err);
-    }
-
-    const handleMessage = (event) => {
-        setUserData({...userData, message: event.target.value});
-    }
-
-    // 메시지 전송
-    const sendValue = () => {
-        if (stompClient && userData.message) {
-            const chatMessage = {
-                senderName: userData.username,
-                message: userData.message,
-                status: "MESSAGE"
-            };
-            stompClient.publish({
-                destination: "/app/message",
-                body: JSON.stringify(chatMessage),
-            });
-            setUserData({...userData, message: ""});
-        }
-    }
-
-    const handleUsername = (event) => {
-        setUserData({...userData, username: event.target.value});
-    }
-
-    // 연결 시작
-    const registerUser = () => {
-        if (userData.username) {
-            connect();
-        }
-    }
-
-    // 게임 종료 시 처리
+    /**
+     * 게임 종료 시 실행되는 함수, 메인 화면으로 이동
+     */
     const confirmLeaveGame = () => {
         window.location.href = "http://localhost:3000";
     };
 
     return (
-        <div className="container">
+        <div>
             {userData.connected ? (
-                <div>
+                <div className="container">
                     <h1>유저 목록</h1>
                     <ul className="user-name">
                         {userList.map((user, index) => (
@@ -160,28 +75,31 @@ const ReadyToGame = () => {
                     <div className="chat-box">
                         <ul className="chat-messages">
                             {publicChats.map((chat, index) => (
-                                <li className={`message ${chat.senderName === userData.username ? "self" : ""}`} key={index}>
-                                    {chat.senderName !== userData.username && <div className="avatar">{chat.senderName}</div>}
-                                    <div className="message-data">{chat.message}</div>
-                                    {chat.senderName === userData.username && <div className="avatar self">{chat.senderName}</div>}
+                                <li className={`message ${chat.senderName === userData.username ? "self" : ""}`}
+                                    key={index}>
+                                    {chat.senderName !== userData.username &&
+                                        <div className="avatar">{chat.senderName}</div>}
+                                    <div className="message-data">{chat.message || chat.content}</div>
+                                    {chat.senderName === userData.username &&
+                                        <div className="avatar self">{chat.senderName}</div>}
                                 </li>
                             ))}
                         </ul>
                         <div className="send-message">
-                            <input type="text" className="input-message" placeholder="메시지 입력" value={userData.message} onChange={handleMessage}/>
+                            <input type="text" className="input-message" placeholder="메시지 입력" value={userData.message}
+                                   onChange={handleMessage}/>
                             <button className="send-button" onClick={sendValue}>전송</button>
                         </div>
                     </div>
                     <button onClick={confirmLeaveGame}>게임 종료</button>
                 </div>
             ) : (
-                <div className="register">
-                    <input type="text" placeholder="사용자 이름 입력" value={userData.username} onChange={handleUsername}/>
-                    <button onClick={registerUser}>연결</button>
+                <div>
+                    <h2>서버에 연결 중입니다... 사용자 이름: {userData.username}</h2>
                 </div>
             )}
         </div>
     );
-}
+};
 
 export default ReadyToGame;
